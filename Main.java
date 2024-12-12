@@ -1,13 +1,44 @@
 import java.util.ArrayList;
 import java.util.List;
 
+// Интерфейс для тестовых раннеров
+interface ITestRunner {
+    boolean executeTest(String input, String expected);
+}
+
+// Простой тестовый раннер
+class SimpleTestRunner implements ITestRunner {
+    @Override
+    public boolean executeTest(String input, String expected) {
+        return input.equals(expected);
+    }
+}
+
+// Расширенный тестовый раннер
+class AdvancedTestRunner implements ITestRunner {
+    private int complexityLevel;
+
+    public AdvancedTestRunner(int complexityLevel) {
+        this.complexityLevel = complexityLevel;
+    }
+
+    @Override
+    public boolean executeTest(String input, String expected) {
+        System.out.println("Executing with complexity level: " + complexityLevel);
+        return input.equals(expected) && complexityLevel > 2;
+    }
+}
+
+// Класс для представления теста
 class TestCase {
     private final String input;
     private final String expected;
+    private final ITestRunner testRunner;  // Поле для тестового раннера
 
-    public TestCase(String input, String expected) {
+    public TestCase(String input, String expected, ITestRunner testRunner) {
         this.input = input;
         this.expected = expected;
+        this.testRunner = testRunner;
     }
 
     public String getInput() {
@@ -17,8 +48,22 @@ class TestCase {
     public String getExpected() {
         return this.expected;
     }
+
+    public ITestRunner getTestRunner() {
+        return this.testRunner;
+    }
+
+    // Метод для выполнения теста с использованием конкретного раннера
+    public ExecutionResult executeTest() {
+        ExecutionResult result = new ExecutionResult();
+        boolean isPassed = testRunner.executeTest(input, expected);
+        result.setActualOutput(input);
+        result.setIsPassed(isPassed);
+        return result;
+    }
 }
 
+// Класс для представления набора тестов
 class TestSuite {
     private static int totalTestSuitesCreated = 0;
     private final List<TestCase> tests;
@@ -41,6 +86,7 @@ class TestSuite {
     }
 }
 
+// Класс для представления задачи
 class Task {
     private final String description;
     private final TestSuite testSuite;
@@ -59,6 +105,7 @@ class Task {
     }
 }
 
+// Класс для представления решения пользователя
 class UserSolution {
     private final String solutionCode;
 
@@ -71,6 +118,7 @@ class UserSolution {
     }
 }
 
+// Класс для представления результата выполнения теста
 class ExecutionResult {
     private String actualOutput;
     private boolean isPassed;
@@ -96,6 +144,7 @@ class ExecutionResult {
     }
 }
 
+// Класс для представления отправки решения
 class Submission {
     private final UserSolution solution;
     private final List<ExecutionResult> results;
@@ -127,7 +176,7 @@ class Submission {
     }
 }
 
-// Абстрактный класс TestEntity для использования в качестве базового
+// Абстрактный класс для сущностей тестов
 abstract class TestEntity {
     protected String id;
 
@@ -139,16 +188,15 @@ abstract class TestEntity {
         return id;
     }
 
-    // Абстрактный метод
     public abstract void execute();
 }
 
-// Производный класс ExtendedTestCase, наследующий TestCase
+// Класс для расширенного теста
 class ExtendedTestCase extends TestCase {
     private final String description;
 
     public ExtendedTestCase(String input, String expected, String description) {
-        super(input, expected);
+        super(input, expected, new SimpleTestRunner()); // По умолчанию используем SimpleTestRunner
         this.description = description;
     }
 
@@ -156,20 +204,18 @@ class ExtendedTestCase extends TestCase {
         return description;
     }
 
-    // Перегрузка метода getInput с вызовом базового метода
     @Override
     public String getInput() {
         return "Description: " + description + ", Input: " + super.getInput();
     }
 }
 
-// Производный класс DetailedTask
+// Класс для подробной задачи
 class DetailedTask extends Task {
     private final String details;
 
-    // Конструктор производного класса с вызовом конструктора базового класса
     public DetailedTask(String description, TestSuite testSuite, String details) {
-        super(description, testSuite); // Вызов конструктора базового класса
+        super(description, testSuite);
         this.details = details;
     }
 
@@ -183,26 +229,25 @@ class DetailedTask extends Task {
     }
 }
 
-// Производный класс AdvancedTestSuite
+// Класс для улучшенного набора тестов
 class AdvancedTestSuite extends TestSuite {
     public AdvancedTestSuite(List<TestCase> tests) {
         super(tests);
     }
 
-    // Перегрузка метода getTestCount без вызова базового метода
     @Override
     public int getTestCount() {
-        return super.getTestCount() + 1; // "Бонусный" тест
+        return super.getTestCount() + 1; // Дополнительный бонусный тест
     }
 }
 
-// Интерфейс ClonableEntity
+// Интерфейс для клонирования
 interface ClonableEntity {
     ClonableEntity shallowClone();
     ClonableEntity deepClone();
 }
 
-// Класс Task, реализующий интерфейс ClonableEntity
+// Класс для клонируемой задачи
 class CloneableTask extends Task implements ClonableEntity {
     public CloneableTask(String description, TestSuite testSuite) {
         super(description, testSuite);
@@ -219,20 +264,19 @@ class CloneableTask extends Task implements ClonableEntity {
     }
 }
 
-// Производный класс VirtualTask для демонстрации виртуальных функций
+// Класс для виртуальной задачи
 class VirtualTask extends Task {
     public VirtualTask(String description, TestSuite testSuite) {
         super(description, testSuite);
     }
 
-    // Виртуальная функция
     @Override
     public String getDescription() {
         return "Virtual: " + super.getDescription();
     }
 }
 
-// Класс для проверки интерфейса
+// Класс для проверки реализации интерфейса
 class InterfaceImplementation implements ClonableEntity {
     private final String data;
 
@@ -247,7 +291,7 @@ class InterfaceImplementation implements ClonableEntity {
 
     @Override
     public ClonableEntity deepClone() {
-        return new InterfaceImplementation(new String(this.data)); // Глубокое клонирование
+        return new InterfaceImplementation(new String(this.data));
     }
 
     public String getData() {
@@ -256,11 +300,9 @@ class InterfaceImplementation implements ClonableEntity {
 }
 
 public class Main {
+
     public static ExecutionResult runTestCase(UserSolution solution, TestCase test) {
-        ExecutionResult result = new ExecutionResult();
-        result.setActualOutput(test.getInput()); // Симуляция выполнения решения
-        result.setIsPassed(result.getActualOutput().equals(test.getExpected()));
-        return result;
+        return test.executeTest(); // Используем метод executeTest, который уже использует нужный раннер
     }
 
     public static Submission checkSolution(UserSolution solution, Task task) {
@@ -268,7 +310,8 @@ public class Main {
 
         int totalPassed = 0;
         for (int i = 0; i < task.getTestSuite().getTestCount(); i++) {
-            ExecutionResult result = runTestCase(solution, task.getTestSuite().getTests().get(i));
+            TestCase test = task.getTestSuite().getTests().get(i);
+            ExecutionResult result = runTestCase(solution, test);
             submission.getResults().set(i, result);
             if (result.getIsPassed()) {
                 totalPassed++;
@@ -284,65 +327,31 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        // Демонстрация производных классов
-        ExtendedTestCase extendedTestCase = new ExtendedTestCase("input1", "expected1", "Description1");
-        System.out.println(extendedTestCase.getInput());
-
+        // Создаем тесты с разными раннерами
         List<TestCase> tests = new ArrayList<>();
-        tests.add(extendedTestCase);
+        tests.add(new TestCase("input1", "expected1", new SimpleTestRunner()));  // Используем SimpleTestRunner
+        tests.add(new TestCase("input2", "input2", new AdvancedTestRunner(3)));  // Используем AdvancedTestRunner с уровнем сложности 3
+
+        TestSuite testSuite = new TestSuite(tests);
+
+        // Создаем задачу с тестами
+        Task task = new Task("Task with Multiple Runners", testSuite);
+
+        // Проверяем решение
+        UserSolution userSolution = new UserSolution("user solution code");
+
+        Submission submission = checkSolution(userSolution, task);
+        System.out.println("Total Passed: " + submission.getTotalPassed());
+
+        // Демонстрация дополнительных классов
+        ExtendedTestCase extendedTestCase = new ExtendedTestCase("input1", "expected1", "Test with description");
+        System.out.println(extendedTestCase.getInput());
 
         AdvancedTestSuite advancedSuite = new AdvancedTestSuite(tests);
         System.out.println("Advanced suite test count: " + advancedSuite.getTestCount());
 
-        // Protected доступ
-        TestEntity entity = new TestEntity("Entity1") {
-            @Override
-            public void execute() {
-                System.out.println("Executing entity with ID: " + this.id);
-            }
-        };
-        executeTestEntity(entity);
-
-        // Перегрузка метода
-        System.out.println("ExtendedTestCase Input: " + extendedTestCase.getInput());
-
         // Виртуальные функции
-        Task baseTask = new Task("Base Task", advancedSuite);
-        VirtualTask virtualTask = new VirtualTask("Derived Task", advancedSuite);
-
-        System.out.println("Base Task Description: " + baseTask.getDescription());
-        System.out.println("Virtual Task Description: " + virtualTask.getDescription());
-
-        Task dynamicTask = virtualTask; // Динамический вызов
-        System.out.println("Dynamic Task Description: " + dynamicTask.getDescription());
-
-        // Клонирование
-        CloneableTask task1 = new CloneableTask("Task 1", advancedSuite);
-        CloneableTask shallowClone = (CloneableTask) task1.shallowClone();
-        CloneableTask deepClone = (CloneableTask) task1.deepClone();
-
-        System.out.println("Shallow Clone Description: " + shallowClone.getDescription());
-        System.out.println("Deep Clone Description: " + deepClone.getDescription());
-
-        // Вызов конструктора базового класса
-        DetailedTask detailedTask = new DetailedTask("Task with details", advancedSuite, "These are additional details.");
-        System.out.println("Detailed Task Description: " + detailedTask.getDescription());
-        System.out.println("Detailed Task Details: " + detailedTask.getDetails());
-
-        // Абстрактный класс
-        TestEntity detailedEntity = new TestEntity("AbstractEntity") {
-            @Override
-            public void execute() {
-                System.out.println("Executing abstract entity with ID: " + this.id);
-            }
-        };
-        executeTestEntity(detailedEntity);
-
-        // Интерфейсы
-        InterfaceImplementation impl = new InterfaceImplementation("Example Data");
-        InterfaceImplementation shallowImpl = (InterfaceImplementation) impl.shallowClone();
-        InterfaceImplementation deepImpl = (InterfaceImplementation) impl.deepClone();
-        System.out.println("Interface Shallow Clone Data: " + shallowImpl.getData());
-        System.out.println("Interface Deep Clone Data: " + deepImpl.getData());
+        VirtualTask virtualTask = new VirtualTask("Virtual Task", testSuite);
+        System.out.println(virtualTask.getDescription());
     }
 }
